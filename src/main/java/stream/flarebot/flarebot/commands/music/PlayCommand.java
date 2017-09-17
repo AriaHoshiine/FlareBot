@@ -1,22 +1,30 @@
 package stream.flarebot.flarebot.commands.music;
 
 import com.arsenarsen.lavaplayerbridge.PlayerManager;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import lavalink.client.LavalinkUtil;
+import lavalink.client.player.IPlayer;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.Region;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
+import org.json.JSONArray;
 import stream.flarebot.flarebot.FlareBot;
 import stream.flarebot.flarebot.commands.Command;
 import stream.flarebot.flarebot.commands.CommandType;
-import stream.flarebot.flarebot.music.VideoThread;
 import stream.flarebot.flarebot.objects.GuildWrapper;
 import stream.flarebot.flarebot.util.GeneralUtils;
 import stream.flarebot.flarebot.util.MessageUtils;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 
 public class PlayCommand implements Command {
@@ -49,11 +57,27 @@ public class PlayCommand implements Command {
                 }
                 GeneralUtils.joinChannel(channel, member);
             }
-            if (args[0].startsWith("http") || args[0].startsWith("www.")) {
+            /*if (args[0].startsWith("http") || args[0].startsWith("www.")) {
                 VideoThread.getThread(args[0], channel, sender).start();
             } else {
                 String term = MessageUtils.getMessage(args, 0);
                 VideoThread.getSearchThread(term, channel, sender).start();
+            }*/
+            String input = MessageUtils.getMessage(args, 0);
+            IPlayer player = FlareBot.getInstance().getLavalink().getPlayer(guild.getGuildId());
+            try {
+                HttpResponse<JsonNode> jsonNode = Unirest.get("http://localhost:2333/loadtracks?identifier="
+                        + URLEncoder.encode(input, "UTF-8"))
+                        .header("Authorization", "test").asJson();
+                JSONArray trackData = jsonNode.getBody().getArray();
+                System.out.println(trackData.getJSONObject(0).getString("track"));
+                AudioTrack track = LavalinkUtil.toAudioTrack(trackData.getJSONObject(0).getString("track"));
+                System.out.println(track);
+                player.playTrack(track);
+                player.setVolume(100);
+            } catch (IOException | UnirestException e) {
+                e.printStackTrace();
+                FlareBot.LOGGER.error("I fucked up", e);
             }
         } else {
             if (musicManager.getPlayer(channel.getGuild().getId()).getPlayingTrack() == null &&

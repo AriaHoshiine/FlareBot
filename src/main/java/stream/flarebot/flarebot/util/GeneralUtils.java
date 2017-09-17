@@ -245,7 +245,8 @@ public class GeneralUtils {
                         "bypass it!", channel);
                 return;
             }
-            channel.getGuild().getAudioManager().openAudioConnection(member.getVoiceState().getChannel());
+            FlareBot.getInstance().getLavalink().openVoiceConnection(member.getVoiceState().getChannel());
+            //channel.getGuild().getAudioManager().openAudioConnection(member.getVoiceState().getChannel());
         } else {
             MessageUtils.sendErrorMessage("I do not have permission to " + (!channel.getGuild().getSelfMember()
                     .hasPermission(member.getVoiceState()
@@ -256,12 +257,12 @@ public class GeneralUtils {
   
     public static <T extends Comparable> List<T> orderList(Collection<? extends T> strings) {
         List<T> list = new ArrayList<>(strings);
-        Collections.sort(list, Comparable::compareTo);
+        list.sort(Comparable::compareTo);
         return list;
     }
     
     public static Emote getEmoteById(long l) {
         return FlareBot.getInstance().getGuilds().stream().map(g -> g.getEmoteById(l))
-            .filter(e -> Objects.nonNull(e)).findFirst().orElse(null);
+            .filter(Objects::nonNull).findFirst().orElse(null);
     }
 }

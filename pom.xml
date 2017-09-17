@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>stream.flarebot</groupId>
     <artifactId>flarebot</artifactId>
-    <version>4.0.5-SNAPSHOT</version>
+    <version>4.1-Lavalink_implementation</version>
 
     <repositories>
         <repository> <!-- This repo fixes issues with transitive dependencies -->
@@ -55,6 +55,19 @@
                 <exclusion>
                     <artifactId>JDA</artifactId>
                     <groupId>net.dv8tion</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Lavalink -->
+        <dependency>
+            <groupId>com.github.Frederikam</groupId>
+            <artifactId>Lavalink</artifactId>
+            <version>fa4f9d83329aeea9fa88fae3153137220f81b2b6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.Frederikam.Lavalink</groupId>
+                    <artifactId>Lavalink-Server</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

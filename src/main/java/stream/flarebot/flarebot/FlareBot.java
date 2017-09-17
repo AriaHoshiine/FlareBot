@@ -22,6 +22,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import io.github.binaryoverload.JSONConfig;
+import lavalink.client.io.Lavalink;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
@@ -114,6 +115,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
@@ -331,6 +333,8 @@ public class FlareBot {
     private static Prefixes prefixes;
     private AutoModTracker tracker;
 
+    private Lavalink lavalink;
+
     public static Prefixes getPrefixes() {
         return prefixes;
     }
@@ -362,12 +366,14 @@ public class FlareBot {
                 Thread.sleep(5000);
             } else {
                 builder = builder.setReconnectQueue(new SessionReconnectQueue());
-                System.out.println(builder);
                 for (int i = 0; i < clients.length; i++) {
                     clients[i] = builder.useSharding(i, clients.length).buildAsync();
                     Thread.sleep(5000); // 5 second backoff
                 }
             }
+            lavalink = new Lavalink(clients[0].getSelfUser().getId(), clients.length, shard -> clients[shard]);
+            lavalink.addNode(new URI("ws://localhost:8081"), "test");
+
             prefixes = new Prefixes();
             commands = ConcurrentHashMap.newKeySet();
             musicManager = PlayerManager.getPlayerManager(LibraryFactory.getLibrary(new JDAMultiShard(clients)));
@@ -461,6 +467,7 @@ public class FlareBot {
             }
         } catch (Exception e) {
             LOGGER.error("Could not log in!", e);
+            System.err.println("Could not login! " + e.getMessage());
             Thread.sleep(500);
             System.exit(1);
             return;
@@ -837,6 +844,7 @@ public class FlareBot {
     protected void stop() {
         LOGGER.info("Saving data.");
         EXITING.set(true);
+        lavalink.shutdown();
         for(ScheduledFuture<?> scheduledFuture : Scheduler.getTasks().values())
             scheduledFuture.cancel(false); // No tasks in theory should block this or cause issues. We'll see
         for(JDA client : clients)
@@ -1117,5 +1125,9 @@ public class FlareBot {
 
     public boolean isTestBot() {
         return testBot;
+    }
+
+    public Lavalink getLavalink() {
+        return this.lavalink;
     }
 }
